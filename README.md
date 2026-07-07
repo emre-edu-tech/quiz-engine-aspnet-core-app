@@ -33,7 +33,11 @@ A lightweight, self-hosted quiz engine built with ASP.NET Core 8 Web API (backen
 // Models/Subject.cs
 public class Subject {
     public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "Subject name is required.")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "Subject name must be between 1 and 100 characters.")]
+    public string Name { get; set; } // No default value; must be provided by the admin
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation Property
@@ -43,15 +47,23 @@ public class Subject {
 // Models/Quiz.cs
 public class Quiz {
     public int Id { get; set; }
-    public string Title { get; set; } = String.Empty;
-    public string? Slug { get; set; }   // Null until published
-    public bool IsPublished { get; set; } = false;  // False until "Publish" button is clicked
+
+    [Required(ErrorMessage = "Quiz title is required.")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "Quiz title must be between 1 and 200 characters.")]
+    public string Title { get; set; }   // No default value; must be provided by the admin  
+
+    public string? Slug { get; set; }   // Nullable - null until published
+    public bool IsPublished { get; set; } = false;  // Explicit default value for clarity, a Quiz is not published by default
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // The admin user who owns the Quiz (ASP.NET Core Identity)
-    public string CreatedById { get; set; } = string.Empty;
-    public IdentityUser CreatedBy { get; set; } = null!;
+    [Required(ErrorMessage = "Creator ID is required.")]
+    // Foreign Key
+    public string CreatedById { get; set; }; // No default value, must be set when creating a Quiz
+    
+    // ! => null-forgiving operator tells the compiler "I know this looks null' but it will be populated by EF Core at runtime"
+    public IdentityUser CreatedBy { get; set; } = null!; // Navigation Property
 
     // Navigation Property
     public ICollection<Question> Questions { get; set; } = new List<Question>();
@@ -59,6 +71,33 @@ public class Quiz {
 
 // Models/Question.cs
 public class Question {
-    
+   public int Id { get; set; }
+   public string Text { get; set; } = string.Empty;
+   public string? ImagePath { get; set; }  // Optional image for the questions - Relative path: "/media/questions/xyz.jpg"
+   public int Order { get; set; }  // For manual ordering (drag/drop later' just int for now)
+
+   // Foreign Keys
+   public int QuizId { get; set; }
+   public Quiz Quiz { get; set; } = null!;  // Navigation Property
+
+   // Foreign Keys
+   // Subject is nullable since not every question must have a subject
+   // Both properties are NULLABLE = optional
+   // Not every question must have a subject.
+   public int? SubjectId { get; set; }
+   public Subject? Subject { get; set; }  // Navigation Property
+
+   public ICollection<Choice> Choices { get; set; } = new List<Choice>();
+}
+
+// Models/Choice.cs
+public class Choice {
+    public int Id { get; set; }
+    [Required]
+    public string Text { get; set; };
+    public bool IsCorrect { get; set; };
+
+    public int QuestionId { get; set; } // Foreign Key
+    public Question Question { get; set; } = null!; // Navigation Property
 }
 ```
