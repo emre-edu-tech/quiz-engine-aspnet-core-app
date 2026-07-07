@@ -27,3 +27,38 @@ A lightweight, self-hosted quiz engine built with ASP.NET Core 8 Web API (backen
 | **Image Storage** | Local file system (`wwwroot/media/questions/`) | Served via static files middleware. No cloud storage. |
 | **State Management** | React Context API + `useReducer` | Simple, sufficient for a single admin flow. |
 | **Deployment** | Plesk (Linux) + Native ASP.NET hosting | Activate the ASP.NET Core app hosting |
+
+## 4. Data Models (C# / EF Core)
+```csharp
+// Models/Subject.cs
+public class Subject {
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation Property
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
+}
+
+// Models/Quiz.cs
+public class Quiz {
+    public int Id { get; set; }
+    public string Title { get; set; } = String.Empty;
+    public string? Slug { get; set; }   // Null until published
+    public bool IsPublished { get; set; } = false;  // False until "Publish" button is clicked
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // The admin user who owns the Quiz (ASP.NET Core Identity)
+    public string CreatedById { get; set; } = string.Empty;
+    public IdentityUser CreatedBy { get; set; } = null!;
+
+    // Navigation Property
+    public ICollection<Question> Questions { get; set; } = new List<Question>();
+}
+
+// Models/Question.cs
+public class Question {
+    
+}
+```
