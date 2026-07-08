@@ -132,6 +132,31 @@ public class Choice {
 - `POST /api/auth/login` -> returns {accessToken, username}
 - `POST /api/auth/register` (will just be used for initial admin user creation; later, only login will be needed)
 
-### 5.2 Subjects (`api/subjects`) - [Authorize]
+### 5.2 Subjects (`api/subjects`) - *[Authorize]*
 - `GET /api/subjects` -> Lists all subjects
-- `POST /api/subjects` -> Create (body: {name})
+- `POST /api/subjects` -> Create (body: `{name}`)
+- `DELETE /api/subjects/{id}` -> Logic:
+    1. Check `db.Questions.Any(q => q.SubjectId == id)`.
+    2. If true -> return `409 Conflict` with `{"error": "Cannot delete subject. It is assigned to existing questions."}`.
+    3. Else, delete the subject.
+
+### 5.3 Quizzes (`api/quizzes`) - *[Authorize]*
+- `GET /api/quizzes` -> Returns list of the admin user's quizzes (Title, IsPublished, Slug, UpdatedAt).
+- `POST /api/quizzes` -> Creates a new empty quiz (just a title). Returns `{id, title}`.
+- `GET /api/quizzes/{id}` -> Returns the full quiz **with all nested questions and choices** (including `IsCorrect` flag for editing).
+- `DELETE /api/quizzes/{id}` -> Deletes the quiz and all its questions/choices (cascade).
+
+### 5.4 Question & Choices (`api/quizzes/{quizId}/questions`) - *[Authorize]*
+- `POST /api/quizzes/{quizId}/questions` -> Expects `{text, image (file, optional), subjecId (optional), choices: [{text, isCorrect}, ...]}`.
+    - Saves the image to `wwwroot/media/questions/` if provided.
+    - Ensures *exactly one* choice has `isCorrect = true` (validation).
+- `PUT /api/questions/{id}` -> Updates text, subject, choices, and optionally (if provided) replaces the image.
+- `DELETE /api/questions/{id}` -> Deletes the question and all its choices (cascade).
+
+### 5.5 Save/Publish/Unpublish (`/api/quizzes/{id}/publish`) - *[Authorize]*
+- `POST /api/quizzes/{id}/save` -> Saves updated quiz information and updates `UpdatedAt` timestamp. Returns the updated quiz object (No slug changes).
+- `POST /api/quizzes/{id}/publish` -> Critical logic:
+    1. Check if `IsPublished == false`.
+    2. If false, generate `string slug = Guid.NewGuid().ToString();`
+    3. Set `IsPublished = true`, `Slug = slug`, `UpdatedAt = DateTime.UtcNow`.
+    4. Save changes. 
