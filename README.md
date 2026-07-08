@@ -135,6 +135,10 @@ public class Choice {
 ### 5.2 Subjects (`api/subjects`) - *[Authorize]*
 - `GET /api/subjects` -> Lists all subjects
 - `POST /api/subjects` -> Create (body: `{name}`)
+- `PUT /api/subjects/{id}` -> Update a subject name. { body: { "name": "Physics and Mechanics" } }
+    1. Checks for duplicate names, ensure name is unique (case-insensitive check)
+    2. Return `404` if subject not found.
+    3. Return `409 Conflict` if new name already exists.
 - `DELETE /api/subjects/{id}` -> Logic:
     1. Check `db.Questions.Any(q => q.SubjectId == id)`.
     2. If true -> return `409 Conflict` with `{"error": "Cannot delete subject. It is assigned to existing questions."}`.
@@ -144,6 +148,9 @@ public class Choice {
 - `GET /api/quizzes` -> Returns list of the admin user's quizzes (Title, IsPublished, Slug, UpdatedAt).
 - `POST /api/quizzes` -> Creates a new empty quiz (just a title). Returns `{id, title}`.
 - `GET /api/quizzes/{id}` -> Returns the full quiz **with all nested questions and choices** (including `IsCorrect` flag for editing).
+- `PUT /api/quizzes/{id}` -> Update quiz metadata (title). { body: { "title": "New Quiz Title" } }
+    1. Check ownership (quiz.CreatedById == currentUserId). Only the quiz owner can update.
+    2. Only `Title` can be updated via this endpoint (other fields are managed elsewhere).
 - `DELETE /api/quizzes/{id}` -> Deletes the quiz and all its questions/choices (cascade).
 
 ### 5.4 Question & Choices (`api/quizzes/{quizId}/questions`) - *[Authorize]*
@@ -160,3 +167,11 @@ public class Choice {
     2. If false, generate `string slug = Guid.NewGuid().ToString();`
     3. Set `IsPublished = true`, `Slug = slug`, `UpdatedAt = DateTime.UtcNow`.
     4. Save changes.
+    5. Return `{"publicUrl": "https://yourdomain.com/quiz/" + slug}`.
+    6. If already published -> just return the existing `Slug` (do not regenerate).
+
+### 5.6 Public Interface (No Auth) - `/api/public`
+- `GET /api/public/quizzes/{slug}` -> Returns the quiz **but strips the `IsCorrect` flag** from choices. Includes question text, image (if available), and choice IDs/text.
+- `POST /api/public/quizzes/{slug}/submit` -> Body: `{ answers: {"questionId": "choiceId", ...} }`.
+    - Calculates the total score (`correctCount / totalCount`)
+    - Returns `{ score, total, correctCount }`
