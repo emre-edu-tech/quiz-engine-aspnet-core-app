@@ -41,7 +41,12 @@ public class Subject {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation Property
-    public ICollection<Question> Questions { get; set; } = new List<Question>();
+    public ICollection<Question> Questions { get; set; }
+
+    // Constructor to initialize the Questions collection
+    public Subject() {
+        Questions = new List<Question>();
+    }
 }
 
 // Models/Quiz.cs
@@ -62,42 +67,61 @@ public class Quiz {
     // Foreign Key
     public string CreatedById { get; set; }; // No default value, must be set when creating a Quiz
     
-    // ! => null-forgiving operator tells the compiler "I know this looks null' but it will be populated by EF Core at runtime"
-    public IdentityUser CreatedBy { get; set; } = null!; // Navigation Property
+    // Navigation Property - EF Core will populate this
+    public IdentityUser CreatedBy { get; set; }
 
     // Navigation Property
-    public ICollection<Question> Questions { get; set; } = new List<Question>();
+    public ICollection<Question> Questions { get; set; }
+
+    // Constructor to initialize the Questions collection
+    public Quiz() {
+        Questions = new List<Question>();
+    }
 }
 
 // Models/Question.cs
 public class Question {
    public int Id { get; set; }
-   public string Text { get; set; } = string.Empty;
+
+   [Required(ErrorMessage = "Question text is required.")]
+   public string Text { get; set; } // No default value; must be provided by the admin
+
    public string? ImagePath { get; set; }  // Optional image for the questions - Relative path: "/media/questions/xyz.jpg"
-   public int Order { get; set; }  // For manual ordering (drag/drop later' just int for now)
+   public int Order { get; set; } = 0;  // For manual ordering (drag/drop later' just int for now and default to 0)
 
    // Foreign Keys
-   public int QuizId { get; set; }
-   public Quiz Quiz { get; set; } = null!;  // Navigation Property
+   public int QuizId { get; set; }  // Required - must belong to a Quiz
+   // Navigation Property - EF Core will populate this
+   public Quiz Quiz { get; set; }
 
    // Foreign Keys
    // Subject is nullable since not every question must have a subject
-   // Both properties are NULLABLE = optional
    // Not every question must have a subject.
    public int? SubjectId { get; set; }
-   public Subject? Subject { get; set; }  // Navigation Property
+   public Subject? Subject { get; set; }  // Navigation Property - nullable and can be null if the question has no subject
 
-   public ICollection<Choice> Choices { get; set; } = new List<Choice>();
+   public ICollection<Choice> Choices { get; set; }
+
+   // Constructor to initialize the Choices collection
+   public Question() {
+       Choices = new List<Choice>();
+   }
 }
 
 // Models/Choice.cs
 public class Choice {
     public int Id { get; set; }
-    [Required]
-    public string Text { get; set; };
-    public bool IsCorrect { get; set; };
 
-    public int QuestionId { get; set; } // Foreign Key
-    public Question Question { get; set; } = null!; // Navigation Property
+    [Required(ErrorMessage = "Choice text is required.")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "Choice text must be between 1 and 200 characters.")]
+    public string Text { get; set; };   // No default value; must be provided by the admin
+
+    public bool IsCorrect { get; set; } = false; // Explicit default value for clarity, a Choice is not correct by default
+
+    // Foreign Key - Required
+    public int QuestionId { get; set; } // Must belong to a Question
+
+    // Navigation Property - EF Core will populate this
+    public Question Question { get; set; }
 }
 ```
