@@ -159,4 +159,4 @@ public class Choice {
     1. Check if `IsPublished == false`.
     2. If false, generate `string slug = Guid.NewGuid().ToString();`
     3. Set `IsPublished = true`, `Slug = slug`, `UpdatedAt = DateTime.UtcNow`.
-    4. Save changes. 
+    4. Save changes.
