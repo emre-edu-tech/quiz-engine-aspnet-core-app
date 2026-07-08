@@ -125,3 +125,13 @@ public class Choice {
     public Question Question { get; set; }
 }
 ```
+
+## 5. API Endpoints (ASP.NET Core 8 Web API Controllers)
+
+### 5.1 Authentication (`api/auth`)
+- `POST /api/auth/login` -> returns {accessToken, username}
+- `POST /api/auth/register` (will just be used for initial admin user creation; later, only login will be needed)
+
+### 5.2 Subjects (`api/subjects`) - [Authorize]
+- `GET /api/subjects` -> Lists all subjects
+- `POST /api/subjects` -> Create (body: {name})
