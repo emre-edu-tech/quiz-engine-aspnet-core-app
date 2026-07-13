@@ -159,21 +159,16 @@ public class Choice {
 | **Method** | **Endpoint** | **Description** | **Details** |
 |---|---|---|---|
 | `POST` | `/api/quizzes/{id}/save` | Saves updated quiz information and updates `UpdatedAt` timestamp. | Returns the updated quiz object (No slug changes). |
-| POST | /api/quizzes/{id}/publish | Generate slug (if null), set IsPublished = true | - If `IsPublished == false` **and** `Slug == null` -> generate new GUID, set `IsPublished = true`.<br>- If `IsPublished == false` **and** `Slug != null` (Unpublished but had a slug) -> set `IsPublished = true`, keep the existing `Slug`.<br>- If `IsPublished == true` -> just return the existing `Slug` (no changes). |
-| POST | /api/quizzes/{id}/unpublish | Sets `IsPublished = false`. The `Slug` is preserved (kept in the database) | Admin can re-publish later with the `same link`. |
-
-- `POST /api/quizzes/{id}/publish` -> Critical logic:
-    - If `IsPublished == false` **and** `Slug == null` -> generate new GUID, set `IsPublished = true`.
-    - If `IsPublished == false` **and** `Slug != null` (Unpublished but had a slug) -> set `IsPublished = true`, keep the existing `Slug`.
-    - If `IsPublished == true` -> just return the existing `Slug` (no changes).
-- `POST /api/quizzes/{id}/unpublish` -> Sets `IsPublished = false`. The `Slug` is preserved (kept in the database) so the admin can re-publish later with the `same link`.
+| `POST` | `/api/quizzes/{id}/publish` | Generate slug (if null), set IsPublished = true | - If `IsPublished == false` **and** `Slug == null` -> generate new GUID, set `IsPublished = true`.<br>- If `IsPublished == false` **and** `Slug != null` (Unpublished but had a slug) -> set `IsPublished = true`, keep the existing `Slug`.<br>- If `IsPublished == true` -> just return the existing `Slug` (no changes). |
+| `POST` | `/api/quizzes/{id}/unpublish` | Sets `IsPublished = false`. The `Slug` is preserved (kept in the database) | Admin can re-publish later with the `same link`. |
 
 ### 5.5 Question & Choices (`api/quizzes/{quizId}/questions`) - *[Authorize]*
-- `POST /api/quizzes/{quizId}/questions` -> Expects `{text, image (file, optional), subjecId (optional), choices: [{text, isCorrect}, ...]}`.
-    - Saves the image to `wwwroot/media/questions/` if provided.
-    - Ensures *exactly one* choice has `isCorrect = true` (validation).
-- `PUT /api/questions/{id}` -> Updates text, subject, choices, and optionally (if provided) replaces the image.
-- `DELETE /api/questions/{id}` -> Deletes the question and all its choices (cascade).
+
+| **Method** | **Endpoint** | **Description** | **Details** |
+|---|---|---|---|
+| POST | /api/quizzes/{quizId}/questions | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | - Saves the image to `wwwroot/media/questions/` if provided.<br>- Ensures *exactly one* choice has `isCorrect = true` (validation). |
+| PUT | /api/questions/{id} | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | Updates text, subject, choices, and optionally (if provided) replaces the image. |
+| DELETE | /api/questions/{id} | Expects `questionId` to perform the deletion. | Deletes the question and all its choices (cascade). |
 
 ### 5.6 Public Interface (No Auth) - `/api/public`
 - `GET /api/public/quizzes/{slug}` -> Returns the quiz **but strips the `IsCorrect` flag** from choices. Includes question text, image (if available), and choice IDs/text.
