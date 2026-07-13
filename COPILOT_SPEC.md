@@ -166,18 +166,13 @@ public class Choice {
 
 | **Method** | **Endpoint** | **Description** | **Details** |
 |---|---|---|---|
-| POST | /api/quizzes/{quizId}/questions | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | - Saves the image to `wwwroot/media/questions/` if provided.<br>- Ensures *exactly one* choice has `isCorrect = true` (validation). |
-| PUT | /api/questions/{id} | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | Updates text, subject, choices, and optionally (if provided) replaces the image. |
-| DELETE | /api/questions/{id} | Expects `questionId` to perform the deletion. | Deletes the question and all its choices (cascade). |
+| `POST` | `/api/quizzes/{quizId}/questions` | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | - Saves the image to `wwwroot/media/questions/` if provided.<br>- Ensures *exactly one* choice has `isCorrect = true` (validation). |
+| `PUT` | `/api/questions/{id}` | Expects `{text, image (file, optional), subjectId (optional), choices: [{text, isCorrect}, ...]}`. | Updates text, subject, choices, and optionally (if provided) replaces the image. |
+| `DELETE` | `/api/questions/{id}` | Expects `questionId` to perform the deletion. | Deletes the question and all its choices (cascade). |
 
 ### 5.6 Public Interface (No Auth) - `/api/public`
-- `GET /api/public/quizzes/{slug}` -> Returns the quiz **but strips the `IsCorrect` flag** from choices. Includes question text, image (if available), and choice IDs/text.
-- `POST /api/public/quizzes/{slug}/submit` -> Body: `{ answers: {"questionId": "choiceId", ...} }`.
-    1. The total number of questions is calculated as `db.Questions.Count(q => q.QuizId == quizId)`.
-    2. The submitted answers are iterated. For each `(questionId, choiceId)` pair:
-        - We fetch the choice and check `IsCorrect`.
-        - If correct, we increment the `correctCount`.
-    3. The response returns:
-        - `correctCount` (number of correct answers)
-        - `totalQuestions` (the total number of questions in that quiz)
-        - `scorePercentage` (rounded to 2 decimals) - backend or frontend can compute this.
+
+| **Method** | **Endpoint** | **Description** | **Details** |
+|---|---|---|---|
+| GET | /api/public/quizzes/{slug} | Returns the quiz **but strips the `IsCorrect` flag** from choices. | Includes question text, image (if available), and choice IDs/text. |
+| POST | /api/public/quizzes/{slug}/submit | Body: `{ answers: {"questionId": "choiceId", ...} }`. | 1. The total number of questions is calculated as `db.Questions.Count(q => q.QuizId == quizId)`.<br>2. The submitted answers are iterated. For each `(questionId, choiceId)` pair:<br>- We fetch the choice and check `IsCorrect`.<br>- If correct, we increment the `correctCount`.<br>3. The response returns:<br>- `correctCount` (number of correct answers)<br>- `totalQuestions` (the total number of questions in that quiz)<br>- `scorePercentage` (rounded to 2 decimals) - backend or frontend can compute this. |
