@@ -174,5 +174,16 @@ public class Choice {
 
 | **Method** | **Endpoint** | **Description** | **Details** |
 |---|---|---|---|
-| GET | /api/public/quizzes/{slug} | Returns the quiz **but strips the `IsCorrect` flag** from choices. | Includes question text, image (if available), and choice IDs/text. |
-| POST | /api/public/quizzes/{slug}/submit | Body: `{ answers: {"questionId": "choiceId", ...} }`. | 1. The total number of questions is calculated as `db.Questions.Count(q => q.QuizId == quizId)`.<br>2. The submitted answers are iterated. For each `(questionId, choiceId)` pair:<br>- We fetch the choice and check `IsCorrect`.<br>- If correct, we increment the `correctCount`.<br>3. The response returns:<br>- `correctCount` (number of correct answers)<br>- `totalQuestions` (the total number of questions in that quiz)<br>- `scorePercentage` (rounded to 2 decimals) - backend or frontend can compute this. |
+| `GET` | `/api/public/quizzes/{slug}` | Returns the quiz **but strips the `IsCorrect` flag** from choices. | Includes question text, image (if available), and choice IDs/text. |
+| `POST` | `/api/public/quizzes/{slug}/submit` | Body: `{ answers: {"questionId": "choiceId", ...} }`. | 1. The total number of questions is calculated as `db.Questions.Count(q => q.QuizId == quizId)`.<br>2. The submitted answers are iterated. For each `(questionId, choiceId)` pair:<br>- We fetch the choice and check `IsCorrect`.<br>- If correct, we increment the `correctCount`.<br>3. The response returns:<br>- `correctCount` (number of correct answers)<br>- `totalQuestions` (the total number of questions in that quiz)<br>- `scorePercentage` (rounded to 2 decimals) - backend or frontend can compute this. |
+
+## Data Transfer Objects (DTOs)
+
+```csharp
+// DTOs/SubjectUpdateDto.cs
+public class SubjectUpdateDto {
+    [Required]
+    [StringLength(100, MinimumLength =1)]
+    public string Name { get; set; } 
+}
+```
